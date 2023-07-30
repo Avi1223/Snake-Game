@@ -24,9 +24,9 @@ struct snake{
 snake generateFood(){
 	snake s;
 	srand(time(0));
-	s.row=rand()%20;
+	s.row=rand()%10+1;
 	srand(time(0));
-	s.column=rand()%30;
+	s.column=rand()%10+1;
 	gotoxy(s.row,s.column);
 	return s;
 }
@@ -42,10 +42,12 @@ void passValue(snake s[],int n){
 bool gameOver(snake s[],int n){
 	if(s[0].row==0||s[0].column==0||s[0].row==39||s[0].column==39)
 		return true;
-//	for(int i=1;i<n;i++){
-//		if((s[0].row==s[i].row)&&(s[0].column==s[i].column))
-//			return true;
-//	}
+	if(n>3){
+		for(int i=3;i<n;i++){
+			if((s[0].row==s[i].row)&&(s[0].column==s[i].column))
+				return true;
+	}
+	}
 	return false;
 }
 
@@ -53,8 +55,19 @@ void border(int i,int j){
 	gotoxy(i,j);
 	cout<<"+";
 }
+
+void assignDirection(snake s[],int c){
+	switch(c){
+				case KEY_UP:	s[0].row--;	break;
+				case KEY_DOWN:  s[0].row++;	break;
+				case KEY_LEFT:  s[0].column--;	break;
+				case KEY_RIGHT: s[0].column++;	break;
+			}
+}
+
 int main(void){
 	int c=KEY_RIGHT;
+	int copy=0;
 	snake s[20]={{1,1}};
 	int n=1;
 	snake food=generateFood();
@@ -76,22 +89,25 @@ int main(void){
 				food=generateFood();
 				n++;
 			}
+//			copy=c;
 			if(kbhit()){
 				c=getch();
+//				if((c==KEY_DOWN)&&(copy==KEY_UP))
+//					c=copy;
+//				if((c==KEY_UP)&&(copy==KEY_DOWN))
+//					c=copy;
+//				if((c==KEY_RIGHT)&&(copy==KEY_LEFT))
+//					c=copy;
+//				if((c==KEY_LEFT)&&(copy==KEY_RIGHT))
+//					c=copy;
 			}
 			passValue(s,n);
-			switch(c){
-				case KEY_UP:	s[0].row--;	break;
-				case KEY_DOWN:  s[0].row++;	break;
-				case KEY_LEFT:  s[0].column--;	break;
-				case KEY_RIGHT: s[0].column++;	break;
-			}
+			assignDirection(s,c);
 			gamefinish=gameOver(s,n);
 			sleep(1);
-			gotoxy(300,50);
-			cout<<"SCORE = "<<n;
 			system("cls");
 		}
+		cout<<"SCORE = "<<n-1<<"\n\n\n\n";
 		cout<<"GAME OVER!";         
 }
 	
