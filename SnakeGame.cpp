@@ -1,6 +1,5 @@
 #include<iostream>
 #include<conio.h>
-#include<vector>
 #include<cstdlib>
 #include<ctime>
 #include<windows.h>
@@ -32,7 +31,6 @@ snake generateFood(){
 	gotoxy(s.row,s.column);
 	return s;
 }
-
 void pause(int &c,int copy, int lives,int n, snake s[]){
 	while(true){
 		sleep(1);
@@ -53,7 +51,6 @@ void passValue(snake s[],int n){
 		s[i]=s[i-1];
 	}
 }
-
 bool gameOver(snake s[],int n,snake obstacles[]){
 	if(s[0].row==0||s[0].column==0||s[0].row==39||s[0].column==39)
 		return true;
@@ -69,7 +66,6 @@ bool gameOver(snake s[],int n,snake obstacles[]){
 	}
 	return false;
 }
-
 bool overlap(snake food, snake s[],snake obstacles[],int n){
 	for(int i=0;i<38;i++){
 		if(food.row==obstacles[i].row&&food.column==obstacles[i].column)
@@ -81,7 +77,6 @@ bool overlap(snake food, snake s[],snake obstacles[],int n){
 	}
 	return false;
 }
-
 void border(snake obstacles[]){
 	int rec=0;
 	for(int i=0;i<40;i++){
@@ -130,7 +125,6 @@ void assignDirection(snake s[],int c,int &copy,char &print){
 				default : if(c<223) {print=c;} c=copy; break;
 			}
 }
-
 void drawFoodnBorder(snake food,snake s[],int n,char &print,snake obstacles[]){
 	system("cls");
 	gotoxy(food.row,food.column);
@@ -141,7 +135,6 @@ void drawFoodnBorder(snake food,snake s[],int n,char &print,snake obstacles[]){
 		cout<<print;
 	}
 }
-
 void undo(snake s[],int &n,snake foodStore[],int &l,snake &food){
 	if(s[0].row>0&&s[0].column>0){
 		for(int i=0;i<n+200;i++){
@@ -154,7 +147,6 @@ void undo(snake s[],int &n,snake foodStore[],int &l,snake &food){
 		l--;
 	}
 }
-
 int main(void){
 	int c,n=1,l=1,copy,lives=3;
 	snake s[400],obstacles[38];
