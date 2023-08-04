@@ -135,22 +135,23 @@ void drawFoodnBorder(snake food,snake s[],int n,char &print,snake obstacles[]){
 		cout<<print;
 	}
 }
-void undo(snake s[],int &n,snake foodStore[],int &l,snake &food){
-	if(s[0].row>0&&s[0].column>0){
-		for(int i=0;i<n+200;i++){
-			s[i]=s[i+1];
-		}
+int undo(snake s[],int &n,snake foodStore[],int &l,snake &food){
+	if(s[0].row<2&&s[0].column<2)
+		return 0;
+	for(int i=0;i<n+200;i++){
+		s[i]=s[i+1];
 	}
 	if(foodStore[l-2].row==s[0].row&&foodStore[l-2].column==s[0].column){
 		n--;
 		food=foodStore[l-2];
 		l--;
 	}
+	return 0;
 }
 int main(void){
 	int c,n=1,l=1,copy,lives=3;
 	snake s[400],obstacles[38];
-	char print=1;
+	char print='*';
 	bool gamefinish;
 	snake food=generateFood();
 	snake foodStore[60]={{food}};
