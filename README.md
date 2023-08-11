@@ -1,2 +1,2 @@
 # Snake-Game
-Snake game in C++ for terminal with undo, pause/resume, and custom character input. Arrow keys control movement, "z" undoes actions, and "Esc" toggles pause/resume.
+Snake game in C++ for terminal with undo, redo, pause/resume, and custom character input, increase and decrease size of map. Arrow keys control movement, "z" undoes actions, "r" redoes actions, "w" changes character to be printed, "Esc" toggles pause/resume,  "b" increases and "v" decreases size of map.
