@@ -59,8 +59,8 @@ void passValue(snake s[],int n){
 		s[i]=s[i-1];
 	}
 }
-bool gameOver(snake s[],int n,snake obstacles[]){
-	if(s[0].row==0||s[0].column==0||s[0].row==39||s[0].column==39)
+bool gameOver(snake s[],int n,snake obstacles[],int b,int v){
+	if(s[0].row==0||s[0].column==0||(s[0].row==b-1)||(s[0].column==v))
 		return true;
 	if(n>3){
 		for(int i=3;i<n;i++){
@@ -74,42 +74,42 @@ bool gameOver(snake s[],int n,snake obstacles[]){
 	}
 	return false;
 }
-void border(snake obstacles[]){
+void border(snake obstacles[],int &b,int &v){
 	int rec=0;
-	for(int i=0;i<40;i++){
+	for(int i=0;i<b;i++){
 			gotoxy(i,0);
 			cout<<"|";
-			gotoxy(i,39);
+			gotoxy(i,b-1);
 			cout<<"|";
 	}
-	for(int i=0;i<40;i++){
+	for(int i=0;i<v;i++){
 			gotoxy(0,i);
 			cout<<"_";
-			gotoxy(39,i);
+			gotoxy(v-1,i);
 			cout<<"_";
 	}
 	for(int i=12;i<15;i++){
 		gotoxy(i,12);
 		obstacles[rec++]={i,12};
 		cout<<"|";
-		gotoxy(i,26);
-		obstacles[rec++]={i,26};
+		gotoxy(i,b-14);
+		obstacles[rec++]={i,b-14};
 		cout<<"|";
 	}
-	for(int i=24;i>20;i--){
+	for(int i=v-16;i>v-20;i--){
 		gotoxy(i,12);
 		obstacles[rec++]={i,12};
 		cout<<"|";
-		gotoxy(i,26);
-		obstacles[rec++]={i,26};
+		gotoxy(i,b-14);
+		obstacles[rec++]={i,b-14};
 		cout<<"|";
 	}
-	for(int i=12;i<27;i++){
+	for(int i=12;i<b-13;i++){
 		gotoxy(11,i);
 		obstacles[rec++]={11,i};
 		cout<<"=";
-		gotoxy(24,i);
-		obstacles[rec++]={24,i};
+		gotoxy(v-16,i);
+		obstacles[rec++]={v-16,i};
 		cout<<"=";
 	}
 }
@@ -124,6 +124,15 @@ bool overlap(snake food, snake s[],snake obstacles[],int n){
 	}
 	return false;
 }
+void foodEaten(snake s[],snake &food,int &l,int &n,snake obstacles[],snake foodStore[]){
+	if(s[0].row==food.row&&s[0].column==food.column){
+		while(overlap(food,s,obstacles,n)){
+			food=generateFood();
+		}
+		foodStore[l++]=food;
+		n++;
+	}
+}
 void assignDirection(snake s[],int &dir,int &copy){
 	switch(dir){
 				case KEY_UP:	s[0].row--;	copy=KEY_UP; break;
@@ -133,7 +142,7 @@ void assignDirection(snake s[],int &dir,int &copy){
 				default : if(dir<223) {s[0].pr=dir;} dir=copy; break;
 			}
 }
-void drawFoodnBorder(snake &food,snake s[],int n,char print,snake obstacles[]){
+void drawFoodnBody(snake &food,snake s[],int n,char print,snake obstacles[]){
 	gotoxy(food.row,food.column);
 	cout<<"o";	
 	for(int i=0;i<n;i++){
@@ -148,7 +157,7 @@ void drawFoodnBorder(snake &food,snake s[],int n,char print,snake obstacles[]){
 			cout<<" ";
 	}
 }
-int undo(snake s[],int &n,snake foodStore[],int &l,snake &food,stack<snake> &redo){
+int undo(snake s[],int &n,snake foodStore[],int &l,snake &food,stack <snake> &redo){
 	if(s[0].row<2&&s[0].column<2)
 		return 0;
 	redo.push(s[0]);
@@ -166,16 +175,22 @@ int undo(snake s[],int &n,snake foodStore[],int &l,snake &food,stack<snake> &red
 	}
 	return 0;
 }
-void redoStep(snake s[],stack<snake>& redo,int n){
+void redoStep(snake s[],stack <snake> &redo,int &l,int &n,snake &food,snake foodStore[],snake obstacles[]){
 	if(!redo.empty()){
+		gotoxy(s[0].row,s[0].column);
+		cout<<" ";
 		s[0]=redo.top();
 		redo.pop();
+		if(s[0].row==food.row&&s[0].column==food.column){
+			food=foodStore[l];
+			l++;
+			n++;
+		}
 	}
 }
 void initialize(int &dir,bool &gamefinish,snake s[],int &n,int &copy){
 	dir=KEY_RIGHT;
 	copy=dir;
-	gamefinish=false;
 	for(int i=0;i<n;i++)
 		s[i]={1,n-i};
 	gamefinish=false;
@@ -190,17 +205,15 @@ void extraChances(int &lives){
 	sleep(5);
 	system("cls");
 }
-void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,snake obstacles[],snake foodStore[],int l,stack<snake> redo){
+void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,snake obstacles[],snake foodStore[],int l,stack <snake> redo,int &b, int &v){
 	dir=getch();
 	if(dir==27){
 		pause(dir,copy);
 	}
-	else if(dir=='z'){
-		while(dir=='z'){
+	while(dir=='z'){
 			undo(s,n,foodStore,l,food,redo);
-			drawFoodnBorder(food,s,n,print,obstacles);
+			drawFoodnBody(food,s,n,print,obstacles);
 			dir=getch();
-		}
 	}
 	if(dir=='w'){
 		if(w<20)
@@ -209,43 +222,51 @@ void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,
 			w=1;
 	}
 	if(dir=='r'){
-		redoStep(s,redo,n);
-		passValue(s,n);
-		drawFoodnBorder(food,s,n,print,obstacles);
-		dir=getch();
+		while(dir=='r'){
+			passValue(s,n);
+			redoStep(s,redo,l,n,food,foodStore,obstacles);
+			drawFoodnBody(food,s,n,print,obstacles);
+			dir=getch();
+		}
+	}
+	if(dir=='b'||dir=='v'){
+		if(dir=='b'){
+			b++;
+			v++;
+		}
+		else{
+			b--;
+			v--;
+		}
+		system("cls");
+		border(obstacles,b,v);
 	}
 }
 int main(void){
-	int dir,n=1,l=1,copy,lives=3,w=1;
+	int dir,n=1,l=1,copy,lives=3,w=1,b=40,v=40;
 	snake s[400],obstacles[50];
 	bool gamefinish;char print;
 	snake food=generateFood(),foodStore[60]={{food}};
-	stack<snake> redo;
+	stack <snake> redo;
 	while(lives>0){
-		border(obstacles);
+		border(obstacles,b,v);
 		initialize(dir,gamefinish,s,n,copy);
 		while(!gamefinish){
 			s[0].pr=w;
-			drawFoodnBorder(food,s,n,s[0].pr,obstacles);
-			if(s[0].row==food.row&&s[0].column==food.column){
-				while(overlap(food,s,obstacles,n)){
-					food=generateFood();
-				}
-				foodStore[l++]=food;
-				n++;
-			}
+			drawFoodnBody(food,s,n,s[0].pr,obstacles);
+			foodEaten(s,food,l,n,obstacles,foodStore);
 			if(kbhit()){
-				keyboard(dir,w,copy,s,food,n,s[0].pr,obstacles,foodStore,l,redo);
+				keyboard(dir,w,copy,s,food,n,s[0].pr,obstacles,foodStore,l,redo,b,v);
 			}
 			if(((dir==KEY_DOWN)&&(copy==KEY_UP))||((dir==KEY_UP)&&(copy==KEY_DOWN))||((dir==KEY_RIGHT)&&(copy==KEY_LEFT))||((dir==KEY_LEFT)&&(copy==KEY_RIGHT))){
 				dir=copy;
 			}
-			gamefinish=gameOver(s,n,obstacles);
 			passValue(s,n);
-			assignDirection(s,dir,copy);
-			
+			if(dir!='r')
+				assignDirection(s,dir,copy);
 			this_thread::sleep_for(chrono::milliseconds(250));
-			}
+			gamefinish=gameOver(s,n,obstacles,b,v);
+		}
 		extraChances(lives);
 	}
 	cout<<"Score = "<<n-1;
