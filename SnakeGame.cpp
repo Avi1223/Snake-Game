@@ -155,9 +155,6 @@ void drawFoodnBody(snake &food,snake s[],int n,char print,snake obstacles[],stac
 	}
 }
 void undoStep(snake s[],int &n,snake foodStore[],int &l,snake &food,stack <snake> &redo,stack <snake> &undo){
-//	for(int i=0;i<n;i++){
-//			undo.pop();
-//		}
 	if(!undo.empty()){
 		gotoxy(s[0].row,s[0].column);
 		cout<<" ";
