@@ -24,6 +24,7 @@ struct snake{
 		unsigned int row;
 		unsigned int column;
 		char pr;
+		int color;
 };
 snake generateFood(){
 	snake s;
@@ -75,6 +76,8 @@ bool gameOver(snake s[],int n,snake obstacles[],int b,int v){
 	return false;
 }
 void border(snake obstacles[],int &b,int &v){
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 7);
 	int rec=0;
 	for(int i=0;i<b;i++){
 			gotoxy(i,0);
@@ -133,7 +136,7 @@ void foodEaten(snake s[],snake &food,int &l,int &n,snake obstacles[],snake foodS
 		n++;
 	}
 }
-void assignDirection(snake s[],int &dir,int &copy){
+void assignDirection(snake s[],int &dir,int &copy,int &color){
 	switch(dir){
 				case KEY_UP:	s[0].row--;	copy=KEY_UP; break;
 				case KEY_DOWN:  s[0].row++;	copy=KEY_DOWN; break;
@@ -142,23 +145,28 @@ void assignDirection(snake s[],int &dir,int &copy){
 				default : if(dir<223) {s[0].pr=dir;} dir=copy; break;
 			}
 }
-void drawFoodnBody(snake &food,snake s[],int n,char print,snake obstacles[],stack <snake> &undo){
+void drawFoodnBody(snake &food,snake s[],int n,char print,snake obstacles[],stack <snake> &undo,int color){
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 7);
 	gotoxy(food.row,food.column);
 	cout<<"o";
 	for(int i=0;i<n;i++){
 		gotoxy(s[i].row,s[i].column);
-		cout<<s[0].pr;
+        SetConsoleTextAttribute(hConsole, s[0].color);
+        cout<<s[0].pr;
 	}
 	if(s[0].row>0&&s[0].column>0){
 		gotoxy(s[n].row,s[n].column);
 			cout<<" ";
 	}
 }
-void undoStep(snake s[],int &n,snake foodStore[],int &l,snake &food,stack <snake> &redo,stack <snake> &undo){
+void undoStep(snake s[],int &n,snake foodStore[],int &l,snake &food,stack <snake> &redo,stack <snake> &undo,int &color,int &w){
 	if(!undo.empty()){
 		gotoxy(s[0].row,s[0].column);
 		cout<<" ";
 		redo.push(s[0]);
+		color=s[0].color;
+		w=s[0].pr;
 		for(int i=0;i<n;i++){
 			s[i]=s[i+1];
 		}
@@ -173,12 +181,14 @@ void undoStep(snake s[],int &n,snake foodStore[],int &l,snake &food,stack <snake
 		}		
 	}
 }
-void redoStep(snake s[],stack <snake> &redo,int &l,int &n,snake &food,snake foodStore[],stack <snake> &undo){
+void redoStep(snake s[],stack <snake> &redo,int &l,int &n,snake &food,snake foodStore[],stack <snake> &undo,int &color,int &w){
 	if(!redo.empty()){
 		undo.push(s[0]);
 		passValue(s,n);
 		gotoxy(s[0].row,s[0].column);
 		cout<<" ";
+		color=s[0].color;
+		w=s[0].pr;
 		s[0]=redo.top();
 		redo.pop();
 		if(s[0].row==food.row&&s[0].column==food.column){
@@ -188,13 +198,13 @@ void redoStep(snake s[],stack <snake> &redo,int &l,int &n,snake &food,snake food
 		}
 	}
 }
-void initialize(int &dir,bool &gamefinish,snake s[],int &n,int &copy,stack <snake> &undo){
+void initialize(int &dir,bool &gamefinish,snake s[],int &n,int &copy,stack <snake> &undo,int &color){
 	dir=KEY_RIGHT;
 	copy=dir;
 	for(int i=0;i<n;i++)
 		s[i]={1,n-i};
 	undo.push(s[0]);
-	gamefinish=false;
+	gamefinish=false;	
 }
 void extraChances(int &lives){
 	lives--;
@@ -206,14 +216,14 @@ void extraChances(int &lives){
 	sleep(5);
 	system("cls");
 }
-void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,snake obstacles[],snake foodStore[],int l,stack <snake> redo,int &b, int &v,stack <snake> &undo){
+void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,snake obstacles[],snake foodStore[],int l,stack <snake> redo,int &b, int &v,stack <snake> &undo,int &color){
 	dir=getch();
 	if(dir==27){
 		pause(dir,copy);
 	}
 	while(dir=='z'){
-		undoStep(s,n,foodStore,l,food,redo,undo);
-		drawFoodnBody(food,s,n,print,obstacles,undo);
+		undoStep(s,n,foodStore,l,food,redo,undo,color,w);
+		drawFoodnBody(food,s,n,print,obstacles,undo,color);
 		dir=getch();
 	}
 	if(dir=='w'){
@@ -222,9 +232,12 @@ void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,
 		else
 			w=1;
 	}
+	if(dir=='c'){
+		color++;
+	}
 	while(dir=='r'){
-		redoStep(s,redo,l,n,food,foodStore,undo);
-		drawFoodnBody(food,s,n,print,obstacles,undo);
+		redoStep(s,redo,l,n,food,foodStore,undo,color,w);
+		drawFoodnBody(food,s,n,print,obstacles,undo,color);
 		dir=getch();
 	}
 	if(dir=='b'||dir=='v'){
@@ -241,28 +254,29 @@ void keyboard(int &dir,int &w,int copy,snake s[],snake &food, int &n,char print,
 	}
 }
 int main(void){
-	int dir,n=1,l=1,copy,lives=3,w=1,b=40,v=40;
+	int dir,n=1,l=1,copy,lives=3,w=1,b=40,v=40,color=1;
 	snake s[400],obstacles[50];
 	bool gamefinish;char print;
 	snake food=generateFood(),foodStore[60]={{food}};
 	stack <snake> redo,undo;
 	while(lives>0){
 		border(obstacles,b,v);
-		initialize(dir,gamefinish,s,n,copy,undo);
+		initialize(dir,gamefinish,s,n,copy,undo,color);
 		while(!gamefinish){
 			s[0].pr=w;
+			s[0].color=color;
 			undo.push(s[0]);
-			drawFoodnBody(food,s,n,s[0].pr,obstacles,undo);
+			drawFoodnBody(food,s,n,s[0].pr,obstacles,undo,color);
 			foodEaten(s,food,l,n,obstacles,foodStore);
 			if(kbhit()){
-				keyboard(dir,w,copy,s,food,n,s[0].pr,obstacles,foodStore,l,redo,b,v,undo);
+				keyboard(dir,w,copy,s,food,n,s[0].pr,obstacles,foodStore,l,redo,b,v,undo,color);
 			}
 			if(((dir==KEY_DOWN)&&(copy==KEY_UP))||((dir==KEY_UP)&&(copy==KEY_DOWN))||((dir==KEY_RIGHT)&&(copy==KEY_LEFT))||((dir==KEY_LEFT)&&(copy==KEY_RIGHT))){
 				dir=copy;
 			}
 			passValue(s,n);
 			if(dir!='r')
-				assignDirection(s,dir,copy);
+				assignDirection(s,dir,copy,color);
 			this_thread::sleep_for(chrono::milliseconds(250));
 			gamefinish=gameOver(s,n,obstacles,b,v);
 		}
