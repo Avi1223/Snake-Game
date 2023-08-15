@@ -136,7 +136,7 @@ void foodEaten(snake s[],snake &food,int &l,int &n,snake obstacles[],snake foodS
 		n++;
 	}
 }
-void assignDirection(snake s[],int &dir,int &copy,int &color){
+void assignDirection(snake s[],int &dir,int &copy){
 	switch(dir){
 				case KEY_UP:	s[0].row--;	copy=KEY_UP; break;
 				case KEY_DOWN:  s[0].row++;	copy=KEY_DOWN; break;
@@ -276,7 +276,7 @@ int main(void){
 			}
 			passValue(s,n);
 			if(dir!='r')
-				assignDirection(s,dir,copy,color);
+				assignDirection(s,dir,copy);
 			this_thread::sleep_for(chrono::milliseconds(250));
 			gamefinish=gameOver(s,n,obstacles,b,v);
 		}
